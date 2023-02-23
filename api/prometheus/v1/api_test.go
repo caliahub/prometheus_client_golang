@@ -1478,7 +1478,7 @@ func TestAPIClientDo(t *testing.T) {
 	}
 }
 
-func TestSamplesJsonSerialization(t *testing.T) {
+func TestSamplesJSONSerialization(t *testing.T) {
 	tests := []struct {
 		point    model.SamplePair
 		expected string
@@ -1559,6 +1559,97 @@ func TestSamplesJsonSerialization(t *testing.T) {
 			// can do a string compare, otherwise Nan values don't show equivalence
 			// properly.
 			var sp model.SamplePair
+			if err = json.Unmarshal(b, &sp); err != nil {
+				t.Fatal(err)
+			}
+
+			b, err = json.Marshal(sp)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(b) != test.expected {
+				t.Fatalf("Mismatch marshal expected=%s actual=%s", test.expected, string(b))
+			}
+		})
+	}
+}
+
+func TestHistogramJSONSerialization(t *testing.T) {
+	tests := []struct {
+		point    model.SampleHistogramPair
+		expected string
+	}{
+		{
+			point: model.SampleHistogramPair{
+				Timestamp: 0,
+				Histogram: &model.SampleHistogram{},
+			},
+			expected: `[0,{"count":"0","sum":"0"}]`,
+		},
+		{
+			point: model.SampleHistogramPair{
+				Timestamp: 1,
+				Histogram: &model.SampleHistogram{
+					Count: 13.5,
+					Sum:   3897.1,
+					Buckets: model.HistogramBuckets{
+						{
+							Boundaries: 1,
+							Lower:      -4870.992343051145,
+							Upper:      -4466.7196729968955,
+							Count:      1,
+						},
+						{
+							Boundaries: 1,
+							Lower:      -861.0779292198035,
+							Upper:      -789.6119426088657,
+							Count:      2,
+						},
+						{
+							Boundaries: 1,
+							Lower:      -558.3399591246119,
+							Upper:      -512,
+							Count:      3,
+						},
+						{
+							Boundaries: 0,
+							Lower:      2048,
+							Upper:      2233.3598364984477,
+							Count:      1.5,
+						},
+						{
+							Boundaries: 0,
+							Lower:      2896.3093757400984,
+							Upper:      3158.4477704354626,
+							Count:      2.5,
+						},
+						{
+							Boundaries: 0,
+							Lower:      4466.7196729968955,
+							Upper:      4870.992343051145,
+							Count:      3.5,
+						},
+					},
+				},
+			},
+			expected: `[0.001,{"count":"13.5","sum":"3897.1","buckets":[[1,"-4870.992343051145","-4466.7196729968955","1"],[1,"-861.0779292198035","-789.6119426088657","2"],[1,"-558.3399591246119","-512","3"],[0,"2048","2233.3598364984477","1.5"],[0,"2896.3093757400984","3158.4477704354626","2.5"],[0,"4466.7196729968955","4870.992343051145","3.5"]]}]`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.expected, func(t *testing.T) {
+			b, err := json.Marshal(test.point)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(b) != test.expected {
+				t.Fatalf("Mismatch marshal expected=%s actual=%s", test.expected, string(b))
+			}
+
+			// To test Unmarshal we will Unmarshal then re-Marshal this way we
+			// can do a string compare, otherwise Nan values don't show equivalence
+			// properly.
+			var sp model.SampleHistogramPair
 			if err = json.Unmarshal(b, &sp); err != nil {
 				t.Fatal(err)
 			}
