@@ -870,7 +870,7 @@ func TestAlreadyRegistered(t *testing.T) {
 // We use NewGoCollector as a nice concrete example of a collector with
 // multiple metrics.
 func TestRegisterUnregisterCollector(t *testing.T) {
-	col := prometheus.NewGoCollector()
+	col := prometheus.NewGoCollector(prometheus.Labels{})
 
 	reg := prometheus.NewRegistry()
 	reg.MustRegister(col)

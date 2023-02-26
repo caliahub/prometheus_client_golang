@@ -44,6 +44,6 @@ import "github.com/prometheus/client_golang/prometheus"
 //
 // NOTE: The problem is solved in Go 1.15, see
 // https://github.com/golang/go/issues/19812 for the related Go issue.
-func NewGoCollector() prometheus.Collector {
-	return prometheus.NewGoCollector()
+func NewGoCollector(constLabels prometheus.Labels) prometheus.Collector {
+	return prometheus.NewGoCollector(constLabels)
 }

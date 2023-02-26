@@ -39,8 +39,8 @@ type goCollector struct {
 // See there for documentation.
 //
 // Deprecated: Use collectors.NewGoCollector instead.
-func NewGoCollector() Collector {
-	msMetrics := goRuntimeMemStats()
+func NewGoCollector(constLabels Labels) Collector {
+	msMetrics := goRuntimeMemStats(constLabels)
 	msMetrics = append(msMetrics, struct {
 		desc    *Desc
 		eval    func(*runtime.MemStats) float64
@@ -56,7 +56,7 @@ func NewGoCollector() Collector {
 		valType: GaugeValue,
 	})
 	return &goCollector{
-		base:      newBaseGoCollector(),
+		base:      newBaseGoCollector(constLabels),
 		msLast:    &runtime.MemStats{},
 		msRead:    runtime.ReadMemStats,
 		msMaxWait: time.Second,

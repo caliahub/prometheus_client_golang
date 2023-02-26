@@ -46,9 +46,9 @@ type ProcessCollectorOpts struct {
 // The collector only works on operating systems with a Linux-style proc
 // filesystem and on Microsoft Windows. On other operating systems, it will not
 // collect any metrics.
-func NewProcessCollector(opts ProcessCollectorOpts) prometheus.Collector {
+func NewProcessCollector(constLabels prometheus.Labels, opts ProcessCollectorOpts) prometheus.Collector {
 	//nolint:staticcheck // Ignore SA1019 until v2.
-	return prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{
+	return prometheus.NewProcessCollector(constLabels, prometheus.ProcessCollectorOpts{
 		PidFn:        opts.PidFn,
 		Namespace:    opts.Namespace,
 		ReportErrors: opts.ReportErrors,

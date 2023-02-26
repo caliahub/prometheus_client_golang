@@ -39,7 +39,7 @@ func main() {
 
 	// Add Go module build info.
 	reg.MustRegister(collectors.NewBuildInfoCollector())
-	reg.MustRegister(collectors.NewGoCollector(
+	reg.MustRegister(collectors.NewGoCollector(prometheus.Labels{},
 		collectors.WithGoCollectorRuntimeMetrics(collectors.GoRuntimeMetricsRule{Matcher: regexp.MustCompile("/.*")}),
 	))
 

@@ -26,7 +26,7 @@ import (
 
 func TestGoCollectorMemStats(t *testing.T) {
 	var (
-		c   = NewGoCollector().(*goCollector)
+		c   = NewGoCollector(Labels{}).(*goCollector)
 		got uint64
 	)
 

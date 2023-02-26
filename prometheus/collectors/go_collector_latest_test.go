@@ -39,7 +39,7 @@ var baseMetrics = []string{
 
 func TestGoCollectorMarshalling(t *testing.T) {
 	reg := prometheus.NewRegistry()
-	reg.MustRegister(NewGoCollector(
+	reg.MustRegister(NewGoCollector(prometheus.Labels{},
 		WithGoCollectorRuntimeMetrics(GoRuntimeMetricsRule{
 			Matcher: regexp.MustCompile("/.*"),
 		}),
@@ -56,7 +56,7 @@ func TestGoCollectorMarshalling(t *testing.T) {
 
 func TestWithGoCollectorMemStatsMetricsDisabled(t *testing.T) {
 	reg := prometheus.NewRegistry()
-	reg.MustRegister(NewGoCollector(
+	reg.MustRegister(NewGoCollector(prometheus.Labels{},
 		WithGoCollectorMemStatsMetricsDisabled(),
 	))
 	result, err := reg.Gather()
@@ -108,7 +108,7 @@ func TestGoCollectorAllowList(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			reg := prometheus.NewRegistry()
-			reg.MustRegister(NewGoCollector(
+			reg.MustRegister(NewGoCollector(prometheus.Labels{},
 				WithGoCollectorMemStatsMetricsDisabled(),
 				WithGoCollectorRuntimeMetrics(test.rules...),
 			))
@@ -162,7 +162,7 @@ func TestGoCollectorDenyList(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			reg := prometheus.NewRegistry()
-			reg.MustRegister(NewGoCollector(
+			reg.MustRegister(NewGoCollector(prometheus.Labels{},
 				WithGoCollectorMemStatsMetricsDisabled(),
 				WithoutGoCollectorRuntimeMetrics(test.matchers...),
 			))
@@ -187,7 +187,7 @@ func ExampleGoCollector() {
 	reg := prometheus.NewRegistry()
 
 	// Register the GoCollector with the default options. Only the base metrics will be enabled.
-	reg.MustRegister(NewGoCollector())
+	reg.MustRegister(NewGoCollector(prometheus.Labels{}))
 
 	http.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -198,7 +198,7 @@ func ExampleGoCollector_WithAdvancedGoMetrics() {
 
 	// Enable Go metrics with pre-defined rules. Or your custom rules.
 	reg.MustRegister(
-		NewGoCollector(
+		NewGoCollector(prometheus.Labels{},
 			WithGoCollectorMemStatsMetricsDisabled(),
 			WithGoCollectorRuntimeMetrics(
 				MetricsScheduler,
@@ -216,16 +216,17 @@ func ExampleGoCollector_WithAdvancedGoMetrics() {
 
 func ExampleGoCollector_DefaultRegister() {
 	// Unregister the default GoCollector.
-	prometheus.Unregister(NewGoCollector())
+	prometheus.Unregister(NewGoCollector(prometheus.Labels{}))
 
 	// Register the default GoCollector with a custom config.
-	prometheus.MustRegister(NewGoCollector(WithGoCollectorRuntimeMetrics(
-		MetricsScheduler,
-		MetricsGC,
-		GoRuntimeMetricsRule{
-			Matcher: regexp.MustCompile("^/mycustomrule.*"),
-		},
-	),
+	prometheus.MustRegister(NewGoCollector(prometheus.Labels{},
+		WithGoCollectorRuntimeMetrics(
+			MetricsScheduler,
+			MetricsGC,
+			GoRuntimeMetricsRule{
+				Matcher: regexp.MustCompile("^/mycustomrule.*"),
+			},
+		),
 	))
 
 	http.Handle("/metrics", promhttp.Handler())

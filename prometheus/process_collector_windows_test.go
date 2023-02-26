@@ -24,10 +24,10 @@ import (
 
 func TestWindowsProcessCollector(t *testing.T) {
 	registry := NewRegistry()
-	if err := registry.Register(NewProcessCollector(ProcessCollectorOpts{})); err != nil {
+	if err := registry.Register(NewProcessCollector(Labels{}, ProcessCollectorOpts{})); err != nil {
 		t.Fatal(err)
 	}
-	if err := registry.Register(NewProcessCollector(ProcessCollectorOpts{
+	if err := registry.Register(NewProcessCollector(Labels{}, ProcessCollectorOpts{
 		PidFn:        func() (int, error) { return os.Getpid(), nil },
 		Namespace:    "foobar",
 		ReportErrors: true, // No errors expected, just to see if none are reported.

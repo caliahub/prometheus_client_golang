@@ -57,7 +57,7 @@ type ProcessCollectorOpts struct {
 // See there for documentation.
 //
 // Deprecated: Use collectors.NewProcessCollector instead.
-func NewProcessCollector(opts ProcessCollectorOpts) Collector {
+func NewProcessCollector(constLabels Labels, opts ProcessCollectorOpts) Collector {
 	ns := ""
 	if len(opts.Namespace) > 0 {
 		ns = opts.Namespace + "_"
@@ -68,37 +68,37 @@ func NewProcessCollector(opts ProcessCollectorOpts) Collector {
 		cpuTotal: NewDesc(
 			ns+"process_cpu_seconds_total",
 			"Total user and system CPU time spent in seconds.",
-			nil, nil,
+			nil, constLabels,
 		),
 		openFDs: NewDesc(
 			ns+"process_open_fds",
 			"Number of open file descriptors.",
-			nil, nil,
+			nil, constLabels,
 		),
 		maxFDs: NewDesc(
 			ns+"process_max_fds",
 			"Maximum number of open file descriptors.",
-			nil, nil,
+			nil, constLabels,
 		),
 		vsize: NewDesc(
 			ns+"process_virtual_memory_bytes",
 			"Virtual memory size in bytes.",
-			nil, nil,
+			nil, constLabels,
 		),
 		maxVsize: NewDesc(
 			ns+"process_virtual_memory_max_bytes",
 			"Maximum amount of virtual memory available in bytes.",
-			nil, nil,
+			nil, constLabels,
 		),
 		rss: NewDesc(
 			ns+"process_resident_memory_bytes",
 			"Resident memory size in bytes.",
-			nil, nil,
+			nil, constLabels,
 		),
 		startTime: NewDesc(
 			ns+"process_start_time_seconds",
 			"Start time of the process since unix epoch in seconds.",
-			nil, nil,
+			nil, constLabels,
 		),
 	}
 

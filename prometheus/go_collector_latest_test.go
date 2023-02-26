@@ -45,9 +45,9 @@ func TestRmForMemStats(t *testing.T) {
 	}
 }
 
-func expectedBaseMetrics() map[string]struct{} {
+func expectedBaseMetrics(constLabels Labels) map[string]struct{} {
 	metrics := map[string]struct{}{}
-	b := newBaseGoCollector()
+	b := newBaseGoCollector(constLabels)
 	for _, m := range []string{
 		b.gcDesc.fqName,
 		b.goInfoDesc.fqName,
@@ -60,8 +60,8 @@ func expectedBaseMetrics() map[string]struct{} {
 	return metrics
 }
 
-func addExpectedRuntimeMemStats(metrics map[string]struct{}) map[string]struct{} {
-	for _, m := range goRuntimeMemStats() {
+func addExpectedRuntimeMemStats(constLabels Labels, metrics map[string]struct{}) map[string]struct{} {
+	for _, m := range goRuntimeMemStats(constLabels) {
 		metrics[m.desc.fqName] = struct{}{}
 	}
 	return metrics
@@ -83,11 +83,11 @@ func TestGoCollector_ExposedMetrics(t *testing.T) {
 			opts: internal.GoCollectorOptions{
 				DisableMemStatsLikeMetrics: true,
 			},
-			expectedFQNameSet: expectedBaseMetrics(),
+			expectedFQNameSet: expectedBaseMetrics(Labels{}),
 		},
 		{
 			// Default, only MemStats.
-			expectedFQNameSet: addExpectedRuntimeMemStats(expectedBaseMetrics()),
+			expectedFQNameSet: addExpectedRuntimeMemStats(Labels{}, expectedBaseMetrics(Labels{})),
 		},
 		{
 			// Get all runtime/metrics without MemStats.
@@ -97,7 +97,7 @@ func TestGoCollector_ExposedMetrics(t *testing.T) {
 					{Matcher: regexp.MustCompile("/.*")},
 				},
 			},
-			expectedFQNameSet: addExpectedRuntimeMetrics(expectedBaseMetrics()),
+			expectedFQNameSet: addExpectedRuntimeMetrics(expectedBaseMetrics(Labels{})),
 		},
 		{
 			// Get all runtime/metrics and MemStats.
@@ -106,7 +106,7 @@ func TestGoCollector_ExposedMetrics(t *testing.T) {
 					{Matcher: regexp.MustCompile("/.*")},
 				},
 			},
-			expectedFQNameSet: addExpectedRuntimeMemStats(addExpectedRuntimeMetrics(expectedBaseMetrics())),
+			expectedFQNameSet: addExpectedRuntimeMemStats(Labels{}, addExpectedRuntimeMetrics(expectedBaseMetrics(Labels{}))),
 		},
 	} {
 		if ok := t.Run("", func(t *testing.T) {
@@ -225,7 +225,7 @@ func TestBatchHistogram(t *testing.T) {
 func collectGoMetrics(t *testing.T, opts internal.GoCollectorOptions) []Metric {
 	t.Helper()
 
-	c := NewGoCollector(func(o *internal.GoCollectorOptions) {
+	c := NewGoCollector(Labels{}, func(o *internal.GoCollectorOptions) {
 		o.DisableMemStatsLikeMetrics = opts.DisableMemStatsLikeMetrics
 		o.RuntimeMetricSumForHist = opts.RuntimeMetricSumForHist
 		o.RuntimeMetricRules = opts.RuntimeMetricRules
@@ -384,7 +384,7 @@ func TestExpectedRuntimeMetrics(t *testing.T) {
 }
 
 func TestGoCollectorConcurrency(t *testing.T) {
-	c := NewGoCollector().(*goCollector)
+	c := NewGoCollector(Labels{}).(*goCollector)
 
 	// Set up multiple goroutines to Collect from the
 	// same GoCollector. In race mode with GOMAXPROCS > 1,

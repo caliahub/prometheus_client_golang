@@ -163,7 +163,7 @@ func defaultGoCollectorOptions() internal.GoCollectorOptions {
 // See there for documentation.
 //
 // Deprecated: Use collectors.NewGoCollector instead.
-func NewGoCollector(opts ...func(o *internal.GoCollectorOptions)) Collector {
+func NewGoCollector(constLabels Labels, opts ...func(o *internal.GoCollectorOptions)) Collector {
 	opt := defaultGoCollectorOptions()
 	for _, o := range opts {
 		o(&opt)
@@ -217,25 +217,27 @@ func NewGoCollector(opts ...func(o *internal.GoCollectorOptions)) Collector {
 					BuildFQName(namespace, subsystem, name),
 					d.Description.Description,
 					nil,
-					nil,
+					constLabels,
 				),
 				internal.RuntimeMetricsBucketsForUnit(bucketsMap[d.Name], unit),
 				hasSum,
 			)
 		} else if d.Cumulative {
 			m = NewCounter(CounterOpts{
-				Namespace: namespace,
-				Subsystem: subsystem,
-				Name:      name,
-				Help:      d.Description.Description,
+				Namespace:   namespace,
+				Subsystem:   subsystem,
+				Name:        name,
+				Help:        d.Description.Description,
+				ConstLabels: constLabels,
 			},
 			)
 		} else {
 			m = NewGauge(GaugeOpts{
-				Namespace: namespace,
-				Subsystem: subsystem,
-				Name:      name,
-				Help:      d.Description.Description,
+				Namespace:   namespace,
+				Subsystem:   subsystem,
+				Name:        name,
+				Help:        d.Description.Description,
+				ConstLabels: constLabels,
 			})
 		}
 		metricSet = append(metricSet, m)
@@ -261,7 +263,7 @@ func NewGoCollector(opts ...func(o *internal.GoCollectorOptions)) Collector {
 	)
 
 	if !opt.DisableMemStatsLikeMetrics {
-		msMetrics = goRuntimeMemStats()
+		msMetrics = goRuntimeMemStats(constLabels)
 		msDescriptions = bestEffortLookupRM(rmNamesForMemStatsMetrics)
 
 		// Check if metric was not exposed before and if not, add to sampleBuf.
@@ -275,7 +277,7 @@ func NewGoCollector(opts ...func(o *internal.GoCollectorOptions)) Collector {
 	}
 
 	return &goCollector{
-		base:                 newBaseGoCollector(),
+		base:                 newBaseGoCollector(constLabels),
 		sampleBuf:            sampleBuf,
 		sampleMap:            sampleMap,
 		rmExposedMetrics:     metricSet,

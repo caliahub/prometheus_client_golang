@@ -23,7 +23,7 @@ import (
 
 func TestGoCollectorGoroutines(t *testing.T) {
 	var (
-		c               = NewGoCollector()
+		c               = NewGoCollector(Labels{})
 		metricCh        = make(chan Metric)
 		waitCh          = make(chan struct{})
 		endGoroutineCh  = make(chan struct{})
@@ -90,7 +90,7 @@ func TestGoCollectorGoroutines(t *testing.T) {
 
 func TestGoCollectorGC(t *testing.T) {
 	var (
-		c               = NewGoCollector()
+		c               = NewGoCollector(Labels{})
 		metricCh        = make(chan Metric)
 		waitCh          = make(chan struct{})
 		endCollectionCh = make(chan struct{})
@@ -156,7 +156,7 @@ func TestGoCollectorGC(t *testing.T) {
 }
 
 func BenchmarkGoCollector(b *testing.B) {
-	c := NewGoCollector().(*goCollector)
+	c := NewGoCollector(Labels{}).(*goCollector)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
