@@ -189,7 +189,7 @@ func ExampleGoCollector() {
 	// Register the GoCollector with the default options. Only the base metrics will be enabled.
 	reg.MustRegister(NewGoCollector(prometheus.Labels{}))
 
-	http.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
+	http.Handle("/metrics", promhttp.HandlerFor(prometheus.Labels{}, reg, promhttp.HandlerOpts{}))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
@@ -210,7 +210,7 @@ func ExampleGoCollector_WithAdvancedGoMetrics() {
 			WithoutGoCollectorRuntimeMetrics(regexp.MustCompile("^/gc/.*")),
 		))
 
-	http.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
+	http.Handle("/metrics", promhttp.HandlerFor(prometheus.Labels{}, reg, promhttp.HandlerOpts{}))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
@@ -229,6 +229,6 @@ func ExampleGoCollector_DefaultRegister() {
 		),
 	))
 
-	http.Handle("/metrics", promhttp.Handler())
+	http.Handle("/metrics", promhttp.Handler(prometheus.Labels{}))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -55,7 +55,7 @@ func ExampleInstrumentHandlerWithExtraMethods() {
 		opts,
 	)
 
-	http.Handle("/metrics", Handler())
+	http.Handle("/metrics", Handler(prometheus.Labels{}))
 	http.Handle("/pull", pullChain)
 
 	if err := http.ListenAndServe(":3000", nil); err != nil {

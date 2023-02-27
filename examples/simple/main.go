@@ -32,6 +32,6 @@ func main() {
 	reg := prometheus.NewRegistry()
 
 	// Expose /metrics HTTP endpoint using the created custom registry.
-	http.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{Registry: reg}))
+	http.Handle("/metrics", promhttp.HandlerFor(prometheus.Labels{}, reg, promhttp.HandlerOpts{Registry: reg}))
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }

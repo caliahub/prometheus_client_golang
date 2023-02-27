@@ -172,7 +172,7 @@ func ExampleRegister() {
 	}
 	// Don't forget to tell the HTTP server about the Prometheus handler.
 	// (In a real program, you still need to start the HTTP server...)
-	http.Handle("/metrics", promhttp.Handler())
+	http.Handle("/metrics", promhttp.Handler(prometheus.Labels{}))
 
 	// Now you can start workers and give every one of them a pointer to
 	// taskCounter and let it increment it whenever it completes a task.

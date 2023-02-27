@@ -58,10 +58,17 @@ var (
 	DefaultGatherer   Gatherer   = defaultRegistry
 )
 
-func init() {
-	MustRegister(NewProcessCollector(Labels{}, ProcessCollectorOpts{}))
-	MustRegister(NewGoCollector(Labels{}))
+func DefaultRegister(constLabels Labels) Registerer {
+	registerer := DefaultRegisterer
+	registerer.MustRegister(NewProcessCollector(constLabels, ProcessCollectorOpts{}))
+	registerer.MustRegister(NewGoCollector(constLabels))
+	return registerer
 }
+
+//func init() {
+//	MustRegister(NewProcessCollector(Labels{}, ProcessCollectorOpts{}))
+//	MustRegister(NewGoCollector(Labels{}))
+//}
 
 // NewRegistry creates a new vanilla Registry without any Collectors
 // pre-registered.

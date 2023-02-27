@@ -553,7 +553,7 @@ func ExampleInstrumentHandlerDuration() {
 		),
 	)
 
-	http.Handle("/metrics", Handler())
+	http.Handle("/metrics", Handler(prometheus.Labels{}))
 	http.Handle("/push", pushChain)
 	http.Handle("/pull", pullChain)
 

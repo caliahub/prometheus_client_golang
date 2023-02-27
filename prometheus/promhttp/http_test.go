@@ -105,17 +105,17 @@ func TestHandlerErrorHandling(t *testing.T) {
 	request.Header.Add("Accept", "test/plain")
 
 	mReg := &mockTransactionGatherer{g: reg}
-	errorHandler := HandlerForTransactional(mReg, HandlerOpts{
+	errorHandler := HandlerForTransactional(prometheus.Labels{}, mReg, HandlerOpts{
 		ErrorLog:      logger,
 		ErrorHandling: HTTPErrorOnError,
 		Registry:      reg,
 	})
-	continueHandler := HandlerForTransactional(mReg, HandlerOpts{
+	continueHandler := HandlerForTransactional(prometheus.Labels{}, mReg, HandlerOpts{
 		ErrorLog:      logger,
 		ErrorHandling: ContinueOnError,
 		Registry:      reg,
 	})
-	panicHandler := HandlerForTransactional(mReg, HandlerOpts{
+	panicHandler := HandlerForTransactional(prometheus.Labels{}, mReg, HandlerOpts{
 		ErrorLog:      logger,
 		ErrorHandling: PanicOnError,
 		Registry:      reg,
@@ -218,9 +218,9 @@ the_count 0
 func TestInstrumentMetricHandler(t *testing.T) {
 	reg := prometheus.NewRegistry()
 	mReg := &mockTransactionGatherer{g: reg}
-	handler := InstrumentMetricHandler(reg, HandlerForTransactional(mReg, HandlerOpts{}))
+	handler := InstrumentMetricHandler(prometheus.Labels{}, reg, HandlerForTransactional(prometheus.Labels{}, mReg, HandlerOpts{}))
 	// Do it again to test idempotency.
-	InstrumentMetricHandler(reg, HandlerForTransactional(mReg, HandlerOpts{}))
+	InstrumentMetricHandler(prometheus.Labels{}, reg, HandlerForTransactional(prometheus.Labels{}, mReg, HandlerOpts{}))
 	writer := httptest.NewRecorder()
 	request, _ := http.NewRequest("GET", "/", nil)
 	request.Header.Add("Accept", "test/plain")
@@ -273,7 +273,7 @@ func TestInstrumentMetricHandler(t *testing.T) {
 
 func TestHandlerMaxRequestsInFlight(t *testing.T) {
 	reg := prometheus.NewRegistry()
-	handler := HandlerFor(reg, HandlerOpts{MaxRequestsInFlight: 1})
+	handler := HandlerFor(prometheus.Labels{}, reg, HandlerOpts{MaxRequestsInFlight: 1})
 	w1 := httptest.NewRecorder()
 	w2 := httptest.NewRecorder()
 	w3 := httptest.NewRecorder()
@@ -311,7 +311,7 @@ func TestHandlerMaxRequestsInFlight(t *testing.T) {
 
 func TestHandlerTimeout(t *testing.T) {
 	reg := prometheus.NewRegistry()
-	handler := HandlerFor(reg, HandlerOpts{Timeout: time.Millisecond})
+	handler := HandlerFor(prometheus.Labels{}, reg, HandlerOpts{Timeout: time.Millisecond})
 	w := httptest.NewRecorder()
 
 	request, _ := http.NewRequest("GET", "/", nil)

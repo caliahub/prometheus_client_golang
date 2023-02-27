@@ -137,6 +137,6 @@ func ExampleCollector() {
 		prometheus.NewGoCollector(prometheus.Labels{}),
 	)
 
-	http.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
+	http.Handle("/metrics", promhttp.HandlerFor(prometheus.Labels{}, reg, promhttp.HandlerOpts{}))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

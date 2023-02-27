@@ -72,9 +72,9 @@ var gzipPool = sync.Pool{
 // anything that requires more customization (including using a non-default
 // Gatherer, different instrumentation, and non-default HandlerOpts), use the
 // HandlerFor function. See there for details.
-func Handler() http.Handler {
-	return InstrumentMetricHandler(
-		prometheus.DefaultRegisterer, HandlerFor(prometheus.DefaultGatherer, HandlerOpts{}),
+func Handler(constLabels prometheus.Labels) http.Handler {
+	return InstrumentMetricHandler(constLabels,
+		prometheus.DefaultRegister(constLabels), HandlerFor(constLabels, prometheus.DefaultGatherer, HandlerOpts{}),
 	)
 }
 
@@ -84,20 +84,21 @@ func Handler() http.Handler {
 // Gatherers, with non-default HandlerOpts, and/or with custom (or no)
 // instrumentation. Use the InstrumentMetricHandler function to apply the same
 // kind of instrumentation as it is used by the Handler function.
-func HandlerFor(reg prometheus.Gatherer, opts HandlerOpts) http.Handler {
-	return HandlerForTransactional(prometheus.ToTransactionalGatherer(reg), opts)
+func HandlerFor(constLabels prometheus.Labels, reg prometheus.Gatherer, opts HandlerOpts) http.Handler {
+	return HandlerForTransactional(constLabels, prometheus.ToTransactionalGatherer(reg), opts)
 }
 
 // HandlerForTransactional is like HandlerFor, but it uses transactional gather, which
 // can safely change in-place returned *dto.MetricFamily before call to `Gather` and after
 // call to `done` of that `Gather`.
-func HandlerForTransactional(reg prometheus.TransactionalGatherer, opts HandlerOpts) http.Handler {
+func HandlerForTransactional(constLabels prometheus.Labels, reg prometheus.TransactionalGatherer, opts HandlerOpts) http.Handler {
 	var (
 		inFlightSem chan struct{}
 		errCnt      = prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Name: "promhttp_metric_handler_errors_total",
-				Help: "Total number of internal errors encountered by the promhttp metric handler.",
+				Name:        "promhttp_metric_handler_errors_total",
+				Help:        "Total number of internal errors encountered by the promhttp metric handler.",
+				ConstLabels: constLabels,
 			},
 			[]string{"cause"},
 		)
@@ -239,11 +240,12 @@ func HandlerForTransactional(reg prometheus.TransactionalGatherer, opts HandlerO
 // code is known). For tracking scrape durations, use the
 // "scrape_duration_seconds" gauge created by the Prometheus server upon each
 // scrape.
-func InstrumentMetricHandler(reg prometheus.Registerer, handler http.Handler) http.Handler {
+func InstrumentMetricHandler(constLabels prometheus.Labels, reg prometheus.Registerer, handler http.Handler) http.Handler {
 	cnt := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "promhttp_metric_handler_requests_total",
-			Help: "Total number of scrapes by HTTP status code.",
+			Name:        "promhttp_metric_handler_requests_total",
+			Help:        "Total number of scrapes by HTTP status code.",
+			ConstLabels: constLabels,
 		},
 		[]string{"code"},
 	)
@@ -261,8 +263,9 @@ func InstrumentMetricHandler(reg prometheus.Registerer, handler http.Handler) ht
 	}
 
 	gge := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "promhttp_metric_handler_requests_in_flight",
-		Help: "Current number of scrapes being served.",
+		Name:        "promhttp_metric_handler_requests_in_flight",
+		Help:        "Current number of scrapes being served.",
+		ConstLabels: constLabels,
 	})
 	if err := reg.Register(gge); err != nil {
 		are := &prometheus.AlreadyRegisteredError{}
